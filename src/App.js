@@ -5,15 +5,15 @@ import './App.css';
 function App() {
   const [message, setMessage] = useState('');
 
-  const serverUrl = 'https://scaffold-server-a636111a2e26.herokuapp.com/';
+  const serverUrl = 'https://scaffold-server-a636111a2e26.herokuapp.com/api/data';
   // const serverUrl = 'http://127.0.0.1:5000/api/data';
 
   const fetchData = () => {
-    fetch('http://127.0.0.1:5000/api/data')
+    fetch(serverUrl)
       .then(response => response.json())
       .then(data => {
         setMessage(data.abc);
-        console.log('received data: ', data.abc);
+        console.log('received data: ', data);
       }) 
       .catch(error => console.error('Error fetching data: ', error));
   };
