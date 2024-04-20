@@ -1,13 +1,26 @@
+import React, { useState } from 'react';
 import logo from './logo.svg';
 import './App.css';
 
 function App() {
+  const [message, setMessage] = useState('');
+
+  const fetchData = () => {
+    fetch('http://127.0.0.1:5000/api/data')
+      .then(response => response.json())
+      .then(data => {
+        setMessage(data.abc);
+        console.log('received data: ', data.abc);
+      }) 
+      .catch(error => console.error('Error fetching data: ', error));
+  };
+
   return (
     <div className="App">
       <header className="App-header">
         <img src={logo} className="App-logo" alt="logo" />
         <p>
-          Edit <code>src/App.js</code> and save to reload.
+          Edit <code>src/App.js</code> and save to reload or don't.
         </p>
         <a
           className="App-link"
@@ -17,6 +30,8 @@ function App() {
         >
           Learn React
         </a>
+        <button onClick={fetchData}>Fetch Data: {message}</button>
+        {message && <p>Message from server: {message}</p>}
       </header>
     </div>
   );
