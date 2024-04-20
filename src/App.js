@@ -5,6 +5,9 @@ import './App.css';
 function App() {
   const [message, setMessage] = useState('');
 
+  const serverUrl = 'https://scaffold-server-a636111a2e26.herokuapp.com/';
+  // const serverUrl = 'http://127.0.0.1:5000/api/data';
+
   const fetchData = () => {
     fetch('http://127.0.0.1:5000/api/data')
       .then(response => response.json())
