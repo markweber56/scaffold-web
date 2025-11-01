@@ -1,22 +1,26 @@
 import React, { useState } from 'react';
+import { useNavigate, Routes, Route } from 'react-router-dom';
 import logo from './logo.svg';
-import './App.css';
+import './styles/App.css';
+import LoginPage from './LoginPage';
 
-function App() {
+function Home() {
   const [message, setMessage] = useState('');
 
-  const serverUrl = 'https://scaffold-server-a636111a2e26.herokuapp.com/api/data';
-  // const serverUrl = 'http://127.0.0.1:5000/api/data';
-
+  // const serverUrl = 'https://scaffold-server-a636111a2e26.herokuapp.com/api/data';
+  const serverUrl = 'http://127.0.0.1:5000/api/data';
+  
   const fetchData = () => {
     fetch(serverUrl)
       .then(response => response.json())
       .then(data => {
-        setMessage(data.abc);
-        console.log('received data: ', data);
+        setMessage(data.message);
+        console.log('received data: ', data.data);
       }) 
       .catch(error => console.error('Error fetching data: ', error));
   };
+
+  const navigate = useNavigate();
 
   return (
     <div className="App">
@@ -33,11 +37,21 @@ function App() {
         >
           Learn React
         </a>
-        <button onClick={fetchData}>Fetch Data: {message}</button>
+        <button className="custom-button" onClick={fetchData}>Fetch Data</button>
         {message && <p>Message from server: {message}</p>}
+        <button className="custom-button" onClick={() => navigate('/login')}>Login</button>
       </header>
     </div>
   );
+}
+
+function App() {
+  return (
+    <Routes>
+      <Route path="/" element={<Home />} />
+      <Route path="/login" element={<LoginPage />} />
+    </Routes>
+  )
 }
 
 export default App;
