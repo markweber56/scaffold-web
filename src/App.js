@@ -3,6 +3,7 @@ import { useNavigate, Routes, Route } from 'react-router-dom';
 import logo from './logo.svg';
 import './styles/App.css';
 import LoginPage from './components/LoginPage';
+import Market from './components/Market';
 
 function Home() {
   const [message, setMessage] = useState('');
@@ -40,6 +41,7 @@ function Home() {
         <button className="custom-button" onClick={fetchData}>Fetch Data</button>
         {message && <p>Message from server: {message}</p>}
         <button className="custom-button" onClick={() => navigate('/login')}>Login</button>
+        <button className="custom-button" onClick={() => navigate('/market')}>Market</button>
       </header>
     </div>
   );
@@ -50,6 +52,7 @@ function App() {
     <Routes>
       <Route path="/" element={<Home />} />
       <Route path="/login" element={<LoginPage />} />
+      <Route path='/market' element={<Market />} />
     </Routes>
   )
 }
