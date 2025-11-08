@@ -4,6 +4,7 @@ import logo from './logo.svg';
 import './styles/App.css';
 import LoginPage from './components/LoginPage';
 import Market from './components/Market';
+import ProtectedRoute from './components/ProtectedRoute';
 
 function Home() {
   const [message, setMessage] = useState('');
@@ -52,7 +53,7 @@ function App() {
     <Routes>
       <Route path="/" element={<Home />} />
       <Route path="/login" element={<LoginPage />} />
-      <Route path='/market' element={<Market />} />
+      <Route path='/market' element={<ProtectedRoute><Market /></ProtectedRoute>} />
     </Routes>
   )
 }
