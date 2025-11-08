@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, Routes, Route } from 'react-router-dom';
 import logo from './logo.svg';
 import './styles/App.css';
-import LoginPage from './LoginPage';
+import LoginPage from './components/LoginPage';
 
 function Home() {
   const [message, setMessage] = useState('');
