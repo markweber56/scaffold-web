@@ -103,6 +103,11 @@
   transition: background-color 0.3s, transform 0.2s;
 }
 
+.login-button:hover {
+  background-color: #a0a0a0;     /* Slightly darker on hover */
+  transform: scale(1.05);
+}
+
 .full-page {
   height: 100vh;
   display: flex;

@@ -1,28 +1,24 @@
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
 import { useNavigate, Routes, Route } from 'react-router-dom';
 import logo from './logo.svg';
 import './styles/App.css';
 import LoginPage from './components/LoginPage';
 import Market from './components/Market';
 import ProtectedRoute from './components/ProtectedRoute';
+import { AuthContext } from './contexts/AuthContext';
+import { fetchData } from './api/data';
 
 function Home() {
   const [message, setMessage] = useState('');
-
-  // const serverUrl = 'https://scaffold-server-a636111a2e26.herokuapp.com/api/data';
-  const serverUrl = 'http://127.0.0.1:5000/api/data';
-  
-  const fetchData = () => {
-    fetch(serverUrl)
-      .then(response => response.json())
-      .then(data => {
-        setMessage(data.message);
-        console.log('received data: ', data.data);
-      }) 
-      .catch(error => console.error('Error fetching data: ', error));
-  };
+  const { token } = useContext(AuthContext);
 
   const navigate = useNavigate();
+
+  const handleFetch = () => {
+    fetchData(token)
+    .then(data  => setMessage(data.message))
+    .catch(error => setMessage("an error occured"));
+  };
 
   return (
     <div className="App">
@@ -39,7 +35,7 @@ function Home() {
         >
           Learn React
         </a>
-        <button className="custom-button" onClick={fetchData}>Fetch Data</button>
+        <button className="custom-button" onClick={handleFetch}>Fetch Data</button>
         {message && <p>Message from server: {message}</p>}
         <button className="custom-button" onClick={() => navigate('/login')}>Login</button>
         <button className="custom-button" onClick={() => navigate('/market')}>Market</button>
