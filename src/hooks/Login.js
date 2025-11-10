@@ -1,5 +1,5 @@
 import {useState, useCallback, useContext, useEffect} from 'react';
-import { useNavigate, Routes, Route } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../contexts/AuthContext';
 
 function Login() {
@@ -58,16 +58,13 @@ function Login() {
 
         if (periodCount > 3) {
           clearInterval(timer);
+          setMessage("Redirecting to Market Page");
 
-          setTimeout(() => {
-            setMessage("Redirecting to Market Page");
-
-            setTimeout(() =>{
-              navigate('/market');
-            }, 750);
+          setTimeout(() =>{
+            navigate('/market');
           }, 750);
         }
-      }, 750);
+      }, 500);
 
       return () => clearTimeout(timer);
     }
