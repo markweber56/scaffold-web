@@ -1,155 +1,114 @@
-import { useContext, useEffect, useRef, useState } from 'react';
-import { AuthContext } from "../contexts/AuthContext";
-import { fetchTickers, fetchTickerData } from '../api/data';
+import { useContext, useEffect, useState } from 'react';
+import { AuthContext } from '../contexts/AuthContext';
+import { fetchTickers, fetchTickerData, fetchAvailableDates } from '../api/data';
 import Select from 'react-select';
-import * as d3 from 'd3';
-
+import StockChart from './StockChart';
 
 function Market() {
-
-  const { token } = useContext(AuthContext)
-  const [allTickers, setAllTickers] = useState([])
-  const [selectedTicker, setSelectedTicker] = useState('AMZN')
-  // const [tickerTimestamps, setTickerTimeStamps] = useState([])
-  // const [tickerQuotePrices, setTickerQuotePrices] = useState([])
-  const svgRef = useRef();
+  const { token } = useContext(AuthContext);
+  const [allTickers, setAllTickers] = useState([]);
+  const [selectedTicker, setSelectedTicker] = useState(null);
+  const [availableDates, setAvailableDates] = useState([]);
+  const [startDate, setStartDate] = useState(null);
+  const [endDate, setEndDate] = useState(null);
+  const [chartData, setChartData] = useState(null);
 
   useEffect(() => {
     fetchTickers(token)
-    .then(resp => setAllTickers(resp.data.tickers))
-    .catch(error => console.error(error))
-  }, [])
+      .then(resp => setAllTickers(resp.data.tickers))
+      .catch(error => console.error(error));
+  }, [token]);
 
-  const w = 900
-  const h = 600
-  const pad = 1
+  const tickerOptions = allTickers.map(ticker => ({ value: ticker, label: ticker }));
+  const dateOptions = availableDates.map(date => ({ value: date, label: date }));
 
-  const tickerOptions = allTickers.map(ticker => ({value: ticker, label: ticker}))
+  const handleTickerChange = (ticker) => {
+    setSelectedTicker(ticker);
+    setStartDate(null);
+    setEndDate(null);
+    setAvailableDates([]);
+    setChartData(null);
 
-  const handleSelectionChange = (ticker) => {
-    setSelectedTicker(ticker)
-    fetchTickerData(token, ticker)
-    .then(resp => {
+    fetchAvailableDates(token, ticker)
+      .then(resp => setAvailableDates(resp.data.dates))
+      .catch(error => console.error(error));
+  };
 
-      console.log(resp.data[0][0].slice(0, 10))
+  const handleStartDateChange = (date) => {
+    setStartDate(date);
+  };
 
-      const plotDataRaw = resp.data.map(d => ({
-        datetime: new Date(d[0].slice(0, -3)), 
-        date: d[0].slice(0, 10),
-        price: d[1]
-      }));
+  const handleEndDateChange = (date) => {
+    setEndDate(date);
+  };
 
-      const timeStamps = plotDataRaw.map(pd => pd.datetime)
-      // const dates = new Set(plotDataRaw.map(pd => pd.date))
+  const loadData = () => {
+    if (!selectedTicker) return;
 
-      const plotDataGrouped = plotDataRaw.reduce((pdm, {date, datetime, price}) => {
-        if (!pdm[date]) {
-          pdm[date] = [];
+    fetchTickerData(token, selectedTicker, startDate, endDate)
+      .then(resp => {
+        if (!resp.data || resp.data.length === 0) {
+          setChartData(null);
+          return;
         }
-
-        pdm[date].push({datetime, price});
-        return pdm;
-      }, {});
-
-      console.log("plot data grouped");
-      console.log(plotDataGrouped);
-
-      const plotData = Object.fromEntries(
-        Object.entries(plotDataGrouped).filter(([date, dataArray]) => dataArray.length > 1)
-      );
-
-      // console.log("plot data");
-      // console.log(plotData);
-
-
-      const prices = plotDataRaw.map(pd => pd.price)
-      // setTickerTimeStamps(timeStamps)
-      // setTickerQuotePrices(prices)
-
-      console.log(`got ${resp.data.length} prices`)
-      console.log(`min: ${d3.min(prices)}`)
-
-      const yScale = d3.scaleLinear()
-      .domain([
-        d3.min(prices),
-        d3.max(prices)
-      ])
-      .range([h - pad, pad])
-
-      const dates = Object.keys(plotData);
-      const divisionWidth = w / dates.length;
-      console.log(dates);
-
-      d3.select('.graph')
-      .selectAll('svg')
-      .remove();
-
-      dates.map((date, i) => {
-
-        var svg = d3.select(".graph")
-        .append("svg")
-        .attr("width", divisionWidth) 
-        .attr("height", h)
-        .attr('id', date)
-        
-        const dayData = plotData[date]
-        const xMin = d3.min(dayData, d => d.datetime);
-        const xMax = d3.max(dayData, d => d.datetime);
-
-        const xScale = d3.scaleTime()
-        .domain([xMin, xMax])
-        .range([pad, divisionWidth - pad])
-
-        svg.selectAll("circle")
-        .data(dayData)
-        .enter()
-        .append("circle")
-        .attr("cx", function(d) {
-          return xScale(d.datetime);
-        })
-        .attr("cy", function(d) {
-          return yScale(d.price)
-        })
-        .attr("r", 2)
-        .attr("fill", "red")
-
-        if (i == 0) {
-          const yAxis = d3.axisLeft(yScale)
-            .scale(yScale)
-            .ticks(10)
-
-          svg.append("g")
-          .attr("class", "axis")
-          .attr("fill", "blue")
-          .attr("transform", "translate(30,0)")
-          .call(yAxis)
-
-          svg.selectAll(".axis .tick line")
-            .style("stroke", "white")
-
-          svg.selectAll(".axis .tick text")
-          .style("stroke", "white")
-
-          svg.selectAll(".axis path.domain")
-          .style("stroke", "white")
-        }
-
+        setChartData(resp.data);
       })
-    })
-    .catch(error => console.error(error))
-  }
+      .catch(error => console.error(error));
+  };
 
   return (
-  <div className="market-page">
-    <div className="market-container">
-      <h1 className="market-header">Market Data</h1>
+    <div className="market-page">
+      <div className="market-container">
+        <h1 className="market-header">Market Data</h1>
+      </div>
+      <div className="controls-container">
+        <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
+          <div style={{ minWidth: '150px' }}>
+            <label style={{ color: 'white', fontSize: '12px' }}>Ticker</label>
+            <Select
+              options={tickerOptions}
+              onChange={(option) => handleTickerChange(option.value)}
+              placeholder="Select ticker..."
+            />
+          </div>
+          <div style={{ minWidth: '150px' }}>
+            <label style={{ color: 'white', fontSize: '12px' }}>Start Date</label>
+            <Select
+              options={dateOptions}
+              onChange={(option) => handleStartDateChange(option?.value)}
+              value={startDate ? { value: startDate, label: startDate } : null}
+              placeholder="Start date..."
+              isDisabled={!selectedTicker}
+              isClearable
+            />
+          </div>
+          <div style={{ minWidth: '150px' }}>
+            <label style={{ color: 'white', fontSize: '12px' }}>End Date</label>
+            <Select
+              options={dateOptions}
+              onChange={(option) => handleEndDateChange(option?.value)}
+              value={endDate ? { value: endDate, label: endDate } : null}
+              placeholder="End date..."
+              isDisabled={!selectedTicker}
+              isClearable
+            />
+          </div>
+          <button
+            onClick={loadData}
+            disabled={!selectedTicker}
+            style={{
+              marginTop: '18px',
+              padding: '8px 16px',
+              cursor: selectedTicker ? 'pointer' : 'not-allowed'
+            }}
+          >
+            Load Data
+          </button>
+        </div>
+      </div>
+      <StockChart data={chartData} />
     </div>
-    <div className="controls-container">
-      <Select options={tickerOptions} onChange={(selectedTicker) => handleSelectionChange(selectedTicker.value)}/>
-    </div>
-    <div className="graph"></div>
-  </div>
-  )
+  );
 }
 
 export default Market;
